@@ -84,23 +84,15 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 var re = regexp.MustCompile(`^/images/([0-9a-f]*.png)$`)
 
 func imagesHandler(w http.ResponseWriter, r *http.Request) {
-	dir, err := os.Getwd()
-	log.Println(dir)
-	if err != nil {
-		fmt.Fprintln(w, err)
-		return
-	}
-
 	result := re.FindAllStringSubmatch(r.URL.Path, -1)
 	if len(result) != 1 || len(result[0]) != 2 {
-		fmt.Fprintln(w, "not found")
+		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}
 
 	basename := result[0][1]
 
 	imagefile := path.Join(genDirname(basename), basename)
-	log.Println(imagefile)
 
 	http.ServeFile(w, r, imagefile)
 }
