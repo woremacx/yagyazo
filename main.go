@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -80,14 +81,26 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, url)
 }
 
+var re = regexp.MustCompile(`^/images/([0-9a-f]*.png)$`)
+
 func imagesHandler(w http.ResponseWriter, r *http.Request) {
 	dir, err := os.Getwd()
+	log.Println(dir)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
 	}
 
-	imagefile := path.Join(dir, r.URL.Path)
+	result := re.FindAllStringSubmatch(r.URL.Path, -1)
+	if len(result) != 1 || len(result[0]) != 2 {
+		fmt.Fprintln(w, "not found")
+		return
+	}
+
+	basename := result[0][1]
+
+	imagefile := path.Join(genDirname(basename), basename)
+	log.Println(imagefile)
 
 	http.ServeFile(w, r, imagefile)
 }
